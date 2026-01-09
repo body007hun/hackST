@@ -1,0 +1,48 @@
+#!/bin/sh
+# hackmenu_dialog: dialog alapú menü a HackStation-hoz POSIX shell-re szabva
+
+HEIGHT=15
+WIDTH=50
+CHOICE_HEIGHT=7
+BACKTITLE="HackStation – Alpine Pi Zero W"
+TITLE="Főmenü"
+MENU="Válassz egy opciót:"
+
+CHOICE=$(dialog --clear \
+  --backtitle "$BACKTITLE" \
+  --title "$TITLE" \
+  --menu "$MENU" $HEIGHT $WIDTH $CHOICE_HEIGHT \
+  1 "Nmap szkennelés" \
+  2 "TCPdump indítása" \
+  3 "Aircrack-ng monitor mód" \
+  4 "ARP-scan futtatása" \
+  5 "Hydra" \
+  6 "Kilépés" \
+  2>&1 >/dev/tty)
+
+clear
+case "$CHOICE" in
+  1)
+    /usr/local/bin/hackstation/nmap_module_dialog
+    ;;
+  2)
+    /usr/local/bin/hackstation/tcpdump_module_dialog
+    ;;
+  3)
+    /usr/local/bin/hackstation/aircrack_module_dialog
+    ;;
+  4)
+    /usr/local/bin/hackstation/arp_scan_module_dialog
+    ;;
+  5)
+    /usr/local/bin/hackstation/hydra_module_dialog
+    ;;
+  6)
+    clear && exit 0
+    ;;
+  *)
+    dialog --msgbox "Érvénytelen választás!" 5 30
+    ;;
+esac
+
+clear

@@ -1,0 +1,47 @@
+#!/bin/sh
+DEFAULT_NET=${1:-"192.168.1.0/24"}
+
+INFO="\033[1;34m[INFO]\033[0m"
+OK="\033[1;32m[OK]\033[0m"
+ERR="\033[1;31m[HIBA]\033[0m"
+
+clear
+echo "Nmap modul – Hálózati szkennelés"
+echo "--------------------------------"
+echo -e "$INFO Az Nmap (Network Mapper) egy nyílt forráskódú eszköz hálózati IP-címek és portok szkennelésére."
+echo ""
+echo "Példák:"
+echo -e " $OK nmap -sn 192.168.1.0/24         $INFO # Élő eszközök keresése"
+echo -e " $OK nmap scanme.nmap.org            $INFO # Alap port scan"
+echo -e " $OK nmap -sS scanme.nmap.org        $INFO # Stealth scan"
+echo -e " $OK nmap -sV scanme.nmap.org        $INFO # Verziók detektálása"
+echo -e " $OK nmap -A scanme.nmap.org         $INFO # Aggresszív scan"
+echo -e " $OK nmap -oN output.txt scanme.nmap.org   $INFO # Normál output"
+echo -e " $OK nmap -oA output scanme.nmap.org       $INFO # Minden formátum"
+echo ""
+
+read -p "Használt opciók (pl. -sn): " opts
+[ -z "$opts" ] && opts="-sn"
+read -p "Céltartomány (alap: $DEFAULT_NET): " range
+[ -z "$range" ] && range="$DEFAULT_NET"
+
+# Mentés opció
+read -p "Mentsem a kimenetet fájlba? (y/n): " save
+if [ "$save" = "y" ]; then
+    OUTDIR="/root/outputs"
+    mkdir -p "$OUTDIR"
+    TS=$(date +"%Y%m%d-%H%M%S")
+    OUTFILE="$OUTDIR/nmap-$TS.txt"
+    echo -e "$INFO Kimenet mentése ide: $OUTFILE"
+    {
+        echo -e "$INFO Nmap indítása az alábbi paraméterekkel:"
+        echo "nmap $opts $range"
+        nmap $opts $range
+    } | tee "$OUTFILE"
+else
+    echo -e "$INFO Nmap indítása az alábbi paraméterekkel:"
+    echo "nmap $opts $range"
+    nmap $opts $range
+fi
+
+exit 0

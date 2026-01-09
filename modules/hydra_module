@@ -1,0 +1,24 @@
+#!/bin/sh
+
+INFO="\033[1;34m[INFO]\033[0m"
+ERR="\033[1;31m[HIBA]\033[0m"
+
+clear
+echo "Hydra modul – Jelszófeltörés eszköz"
+echo "-------------------------------------"
+echo -e "$INFO Hydra: párhuzamos brute-force támadások különböző protokollokra."
+echo -e "$INFO Támogatott szolgáltatások: SSH, FTP, HTTP-form, SMTP, SMB, VNC, RDP, stb." 
+echo
+
+read -p "Protokoll (pl. ssh, ftp, http-form): " PROTO
+read -p "Cél host (pl. 192.168.1.11): " TARGET
+read -p "Felhasználó (-l USER vagy -L USERFILE): " USERS
+read -p "Jelszólista (-p PASS vagy -P PASSFILE): " PASSLIST
+read -p "Extra kapcsolók (pl. -t 4 -v): " EXTRA
+
+CMD="hydra $EXTRA $USERS $PASSLIST $PROTO://$TARGET"
+echo -e "$INFO Futtatás: $CMD"
+$CMD
+
+echo -e "$INFO Végeztem."
+

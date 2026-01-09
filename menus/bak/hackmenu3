@@ -1,0 +1,82 @@
+#!/bin/sh
+
+# Színes kiírások
+OK="\033[1;32m[OK]\033[0m"
+INFO="\033[1;34m[INFO]\033[0m"
+ERR="\033[1;31m[HIBA]\033[0m"
+
+# WLAN interfész ellenőrzése
+ip link show wlan0 > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo -e "\e[1;31m[HIBA]\e[0m WLAN0 interfész nem található."
+  exit 1
+fi
+
+# WLAN0 IP ellenőrzés
+IP=$(ip addr show wlan0 | grep 'inet ' | awk '{print $2}')
+if [ -z "$IP" ]; then
+  echo -e "$ERR WLAN0 nem rendelkezik IP címmel."
+  echo -e "$INFO Wi-Fi interfész konfigurálása indítható: setup-interfaces"
+  read -p "Futtatod most? (y/n): " ans
+  if [ "$ans" = "y" ]; then
+    setup-interfaces
+  fi
+  exit 0
+else
+  echo "$OK WLAN0 IP rendben: $IP"
+fi
+
+# Gateway és DNS lekérdezése
+GW=$(ip route | grep default | awk '{print $3}')
+DNS=$(grep nameserver /etc/resolv.conf | awk '{print $2}')
+
+# Hálózati cím meghatározása
+PREFIX=$(echo $IP | cut -d'/' -f2)
+ADDR=$(echo $IP | cut -d'/' -f1)
+OCT1=$(echo $ADDR | cut -d'.' -f1)
+OCT2=$(echo $ADDR | cut -d'.' -f2)
+OCT3=$(echo $ADDR | cut -d'.' -f3)
+DEFAULT_NET="$OCT1.$OCT2.$OCT3.0/$PREFIX"
+
+clear
+echo -e "\n*** Hacking StaTion - Alpine Pi Zero W ***"
+echo "Kapcsolat info:"
+echo " 🌐 Interfész: wlan0"
+echo " 📡 IP: $IP"
+echo " 🚪 Gateway: $GW"
+echo " 🤭 DNS: $DNS"
+echo "Lemezek:"
+lsblk | sed 's/^/  /'
+
+# Elérhető Wi-Fi interfészek listázása
+echo ""
+echo -e "$INFO Elérhető Wi-Fi interfészek:"
+for dev in $(ls /sys/class/net/ | grep wlan); do
+  state=$(cat /sys/class/net/$dev/operstate)
+  echo " - $dev (állapot: $state)"
+done
+
+# SSH kapcsolat interfészének megjelenítése
+SSH_IF=$(ip route get 1 | awk '{print $5; exit}')
+echo -e "$INFO SSH kapcsolat várhatóan ezen az interfészen zajlik: $SSH_IF"
+
+echo ""
+echo "Válassz egy opciót:"
+echo "1) Nmap szkennelés"
+echo "2) TCPdump indítása"
+echo "3) Aircrack-ng monitor mód"
+echo "4) ARP-scan futtatása"
+echo "5) Hydra"
+echo "6) Kilépés"
+echo ""
+read -p "Választás: " opt
+
+case $opt in
+  1) /usr/local/bin/hackstation/nmap_module "$DEFAULT_NET" ;;
+  2) /usr/local/bin/hackstation/tcpdump_module ;;
+  3) /usr/local/bin/hackstation/aircrack_module ;;
+  4) /usr/local/bin/hackstation/arp_scan_module "$DEFAULT_NET" ;;
+  5) /usr/local/bin/hackstation/hydra_module ;;
+  6) exit 0 ;;
+  *) echo "Érvénytelen választás." ;;
+esac

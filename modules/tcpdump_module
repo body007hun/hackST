@@ -1,0 +1,50 @@
+#!/bin/sh
+
+INFO="\033[1;34m[INFO]\033[0m"
+OK="\033[1;32m[OK]\033[0m"
+ERR="\033[1;31m[HIBA]\033[0m"
+
+clear
+echo "TCPdump modul – Forgalom figyelés"
+echo "----------------------------------"
+echo -e "$INFO A tcpdump egy hatékony parancssori csomagelemző. Lehetővé teszi a hálózati forgalom valós idejű rögzítését és vizsgálatát."
+echo ""
+echo -e "$INFO Hasznos kapcsolók:"
+echo -e " $OK -D     $INFO Elérhető interfészek kilistázása"
+echo -e " $OK -i     $INFO Interfész kiválasztása (pl. wlan0)"
+echo -e " $OK -w     $INFO Rögzítés fájlba (.pcap)"
+echo -e " $OK -r     $INFO Mentett fájl beolvasása"
+echo ""
+echo -e "$INFO Expression segédlet:"
+echo -e " $OK host <IP>        $INFO Bármely csomag forrás vagy cél IP-re"
+echo -e " $OK src <IP>         $INFO Forrás IP-re"
+echo -e " $OK dst <IP>         $INFO Cél IP-re"
+echo -e " $OK src and dst <IP> $INFO Mindkét oldal az IP"
+echo -e " $OK src or dst <IP>  $INFO Bármelyik oldal az IP"
+echo ""
+echo -e "$INFO TCP flag-ek jelentése:"
+echo -e " $OK [.]  $INFO ACK (megerősítés)"
+echo -e " $OK [S]  $INFO SYN (kapcsolat kezdete)"
+echo -e " $OK [P]  $INFO PSH (adat push)"
+echo -e " $OK [F]  $INFO FIN (kapcsolat zárás)"
+echo -e " $OK [R]  $INFO RST (kapcsolat visszaállítás)"
+echo -e " $OK [S.] $INFO SYN-ACK"
+echo ""
+
+read -p "Interfész (alap: wlan0): " iface
+[ -z "$iface" ] && iface="wlan0"
+
+read -p "Szűrő kifejezés (expression, pl. 'port 80'): " expr
+
+# Mentés fájlba automatikus névvel
+OUTDIR="/root/outputs"
+mkdir -p "$OUTDIR"
+TS=$(date +"%Y%m%d-%H%M%S")
+OUTFILE="$OUTDIR/tcpdump-$TS.pcap"
+
+echo -e "$INFO A mentés helye: $OUTFILE"
+echo -e "$INFO Parancs: tcpdump -i $iface -w $OUTFILE $expr"
+echo -e "$INFO Futtatás indul (Ctrl+C leállítja)"
+
+sleep 1
+tcpdump -i "$iface" -w "$OUTFILE" $expr

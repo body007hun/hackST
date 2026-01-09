@@ -1,0 +1,25 @@
+#!/bin/sh
+
+echo "Aircrack-ng – Wi‑Fi audit modul"
+
+# Megnézzük van-e phy
+PHY=$(iw dev 2>/dev/null | awk '$1=="phy"{print $2; exit}')
+if [ -z "$PHY" ]; then
+  echo "[HIBA] Nincs phy eszköz – nem tudjuk létrehozni a mon0 interfészt."
+  echo "Használd a beépített módszert (1), de az megszakíthatja az SSH kapcsolatot."
+  exit 1
+fi
+
+# Ha van phy, létrehozzuk a mon0 interfészt
+iw phy "$PHY" interface add mon0 type monitor || { echo "[HIBA] mon0 létrehozás sikertelen."; exit 1; }
+ifconfig mon0 up
+IFACE=mon0
+echo "[OK] mon0 monitor interfész létrehozva."
+
+read -p "Indítjuk az airodump-ng-et ($IFACE)? (y/n): " run
+if [ "$run" = "y" ]; then
+  echo "[INFO] airodump-ng $IFACE – Ctrl+C a leállításhoz."
+  airodump-ng $IFACE
+else
+  echo "[INFO] Kész."
+fi

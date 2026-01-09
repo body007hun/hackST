@@ -1,0 +1,73 @@
+#!/bin/sh
+
+OK="\033[1;32m[OK]\033[0m"
+INFO="\033[1;34m[INFO]\033[0m"
+ERR="\033[1;31m[HIBA]\033[0m"
+
+clear
+echo "Netdiagnosztika modul"
+echo "------------------------"
+echo "1) Ping teszt"
+echo "2) Traceroute"
+echo "3) Iperf3 (sebességteszt)"
+echo "4) Wi-Fi jelerősség"
+echo "5) DNS lekérdezés"
+echo "6) Vissza"
+echo ""
+read -p "Választás: " opt
+
+case $opt in
+  1)
+    read -p "Cél host/IP (pl. 8.8.8.8): " host
+    echo -e "$INFO Ping teszt indul: $host"
+    ping -c 4 $host
+    ;;
+
+  2)
+    if command -v traceroute >/dev/null 2>&1; then
+      read -p "Cél host/IP: " host
+      echo -e "$INFO Traceroute indul: $host"
+      traceroute $host
+    elif command -v mtr >/dev/null 2>&1; then
+      read -p "Cél host/IP: " host
+      echo -e "$INFO MTR indul: $host"
+      mtr --report $host
+    else
+      echo -e "$ERR Nincs telepítve traceroute vagy mtr."
+    fi
+    ;;
+
+  3)
+    read -p "Szerver IP (iperf3 -s máshol): " iperf_srv
+    echo -e "$INFO Iperf3 teszt indul: $iperf_srv"
+    iperf3 -c $iperf_srv
+    ;;
+
+  4)
+    for iface in $(ls /sys/class/net | grep wlan); do
+      echo -e "$INFO $iface kapcsolat info:"
+      iw dev $iface link | sed 's/^/  /'
+      echo ""
+    done
+    ;;
+
+  5)
+    read -p "Lekérdezendő domain (pl. google.com): " domain
+    if command -v drill >/dev/null 2>&1; then
+      drill $domain
+    elif command -v dig >/dev/null 2>&1; then
+      dig $domain
+    elif command -v nslookup >/dev/null 2>&1; then
+      nslookup $domain
+    else
+      echo -e "$ERR Nincs elérhető DNS eszköz (drill, dig, nslookup)"
+    fi
+    ;;
+
+  6)
+    exit 0
+    ;;
+  *)
+    echo -e "$ERR Érvénytelen választás."
+    ;;
+esac

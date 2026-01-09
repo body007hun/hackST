@@ -1,0 +1,40 @@
+# Alpine rendszer hasznos parancsok
+
+## Csomagkezelés
+apk update              # Frissíti a csomaglistát
+apk search <kifejezés> # Csomag keresése
+apk add <csomag>       # Csomag telepítése
+apk del <csomag>       # Csomag eltávolítása
+
+## Szolgáltatások kezelése
+rc-service <szolg> start|stop|restart|status     # Szolgáltatás indítása, leállítása, újraindítása, állapot lekérdezése
+rc-update add <szolg> default    # Automatikus indítás hozzáadása
+rc-update del <szolg>            # Eltávolítás az automatikus indításból
+rc-update show 
+rc-status default
+
+
+## Modulkezelés
+zstd -d <fájl.zst> -o <célfájl>  # Zstandard fájl kitömörítése
+modprobe <modul>                # Modul betöltése
+lsmod                           # Betöltött modulok listázása
+depmod -a                       # Modulfüggőségek újragenerálása
+dmesg | tail -20                # Rendszerüzenetek vége (hibák ellenőrzése)
+
+## Hálózati parancsok
+ip a                            # Hálózati interfészek listázása
+ip link                         # Hálózati eszközök listázása
+ip link set wlan0 up            # wlan0 bekapcsolása
+iw dev                          # WiFi eszközök megjelenítése
+udhcpc -i wlan0                 # DHCP IP cím kérése wlan0 interfészen
+wpa_supplicant -B -i wlan0 -c /etc/wpa_supplicant/wpa_supplicant.conf  # WPA konfiguráció betöltése háttérben
+
+## Ellenőrzés
+ps aux | grep skript 	        # Fut-e a script háttérben
+tail -f /var/log/*.log          # Írja-e a logot
+
+## Egyebek
+
+scp forrásfájl felhasználó@célIP:/tmp/ # Secure Copy Protocol másolás
+mount -o remount,rw /boot 
+tail -f /var/log/messages | grep apcwatch

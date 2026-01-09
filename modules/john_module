@@ -1,0 +1,39 @@
+#!/bin/sh
+
+INFO="\033[1;34m[INFO]\033[0m"
+ERR="\033[1;31m[HIBA]\033[0m"
+OK="\033[1;32m[OK]\033[0m"
+
+echo -e "$INFO John the Ripper modul – jelszóhash feltörés"
+echo "----------------------------------------------"
+echo -e "$INFO Használható formátumok: Unix crypt, Windows LM, WPA handshake, ZIP, RAR, stb."
+echo
+
+read -p "Hash fájl elérési út (pl. /root/hash.txt): " HASHFILE
+if [ ! -f "$HASHFILE" ]; then
+  echo -e "$ERR Nem található fájl: $HASHFILE"
+  exit 1
+fi
+
+read -p "Jelszólista (pl. /root/passlist.txt): " WORDLIST
+if [ ! -f "$WORDLIST" ]; then
+  echo -e "$ERR Nem található jelszólista: $WORDLIST"
+  exit 1
+fi
+
+echo -e "$INFO Hash fájl betöltése..."
+cd /root/john-1.9.0/run
+john --list=formats > /dev/null 2>&1  # csak ellenőrzés
+
+HASH_COUNT=$(wc -l < "$HASHFILE")
+echo -e "$OK Betöltött hash-ek száma: $HASH_COUNT"
+
+echo -e "$INFO Feltörés indítása: john --wordlist=$WORDLIST $HASHFILE"
+john --wordlist="$WORDLIST" "$HASHFILE"
+
+echo
+echo -e "$INFO Eredmények:"
+john --show "$HASHFILE"
+
+echo
+echo -e "$OK Végeztem."

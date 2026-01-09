@@ -1,0 +1,21 @@
+
+# Hálózati diagnosztikai eszközök
+
+## ping
+ping <host>             # Elérhető-e a host?
+
+## traceroute
+traceroute <host>       # Útvonal a host felé
+
+## nmap
+nmap <ip>               # Port szkennelés
+nmap -sP 192.168.1.0/24 # Élő eszközök szkennelése
+
+## netstat
+netstat -tulnp          # Nyitott portok, szolgáltatások
+
+## tcpdump
+tcpdump -i wlan0        # Forgalom rögzítése adott interfészen
+
+## arp
+arp -a                  # ARP tábla

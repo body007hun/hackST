@@ -1,0 +1,73 @@
+#!/bin/sh
+
+OK="\033[1;32m[OK]\033[0m"
+INFO="\033[1;34m[INFO]\033[0m"
+ERR="\033[1;31m[HIBA]\033[0m"
+
+OUTPUT=""
+
+# Hostname és dátum
+HOSTNAME=$(hostname)
+DATE=$(date)
+OUTPUT="$OUTPUT\n$INFO Rendszer: $HOSTNAME ($DATE)"
+
+# IP címek és interfészek
+OUTPUT="$OUTPUT\n\n$INFO Interfészek és IP címek:"
+INTERFACES=$(ip -o link show | awk -F': ' '{print $2}')
+for iface in $INTERFACES; do
+  ip_addr=$(ip -o -f inet addr show $iface | awk '{print $4}')
+  if [ -n "$ip_addr" ]; then
+    OUTPUT="$OUTPUT\n  🌐 $iface: $ip_addr"
+  else
+    OUTPUT="$OUTPUT\n  ⚪ $iface: nincs IP"
+  fi
+done
+
+# SSH kapcsolatot biztosító interfész meghatározása
+SSH_IFACE=$(ip route get 1 | grep -oP 'dev \K\S+')
+[ -n "$SSH_IFACE" ] && OUTPUT="$OUTPUT\n\n$INFO SSH interfész: $SSH_IFACE (NE állítsd monitor módba!)"
+
+# Gateway és DNS
+GW=$(ip route | grep default | awk '{print $3}')
+DNS=$(grep nameserver /etc/resolv.conf | awk '{print $2}')
+OUTPUT="$OUTPUT\n\n🚪 Gateway: $GW\n🧭 DNS: $DNS"
+
+# Hálózati cím meghatározása
+MAIN_IP=$(ip addr show $SSH_IFACE | grep 'inet ' | awk '{print $2}')
+PREFIX=$(echo $MAIN_IP | cut -d'/' -f2)
+ADDR=$(echo $MAIN_IP | cut -d'/' -f1)
+OCT1=$(echo $ADDR | cut -d'.' -f1)
+OCT2=$(echo $ADDR | cut -d'.' -f2)
+OCT3=$(echo $ADDR | cut -d'.' -f3)
+DEFAULT_NET="$OCT1.$OCT2.$OCT3.0/$PREFIX"
+
+OUTPUT="$OUTPUT\n\n🌍 Alhálózat: $DEFAULT_NET"
+
+# Lemezek kilistázása
+OUTPUT="$OUTPUT\n\n💾 Lemezek:\n$(lsblk | sed 's/^/  /')"
+
+# Kimenet kiírása
+clear
+echo -e "$OUTPUT"
+
+# Opciók megjelenítése
+echo ""
+echo "Válassz egy opciót:"
+echo "1) Nmap szkennelés"
+echo "2) TCPdump indítása"
+echo "3) Aircrack-ng monitor mód"
+echo "4) ARP-scan futtatása"
+echo "5) Hydra"
+echo "6) Kilépés"
+echo ""
+read -p "Választás: " opt
+
+case $opt in
+  1) /usr/local/bin/hackstation/nmap_module "$DEFAULT_NET" ;;
+  2) /usr/local/bin/hackstation/tcpdump_module ;;
+  3) /usr/local/bin/hackstation/aircrack_module ;;
+  4) /usr/local/bin/hackstation/arp_scan_module "$DEFAULT_NET" ;;
+  5) /usr/local/bin/hackstation/hydra_module ;;
+  6) exit 0 ;;
+  *) echo -e "\n$ERR Érvénytelen választás." ;;
+esac

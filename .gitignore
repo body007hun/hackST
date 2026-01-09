@@ -1,0 +1,6 @@
+outputs/
+*.log
+*.tmp
+*.swp
+.env
+data/secrets*

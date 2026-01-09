@@ -1,0 +1,99 @@
+#!/bin/sh
+
+# Színes kiírások
+OK="\033[1;32m[OK]\033[0m"
+INFO="\033[1;34m[INFO]\033[0m"
+ERR="\033[1;31m[HIBA]\033[0m"
+
+# WLAN interfész ellenőrzése
+ip link show wlan0 > /dev/null 2>&1
+if [ $? -ne 0 ]; then
+  echo -e "\e[1;31m[HIBA]\e[0m WLAN0 interfész nem található."
+  exit 1
+fi
+
+# WLAN0 IP ellenőrzés
+IP=$(ip addr show wlan0 | grep 'inet ' | awk '{print $2}')
+if [ -z "$IP" ]; then
+  echo "$ERR WLAN0 nem rendelkezik IP címmel."
+  echo "$INFO Wi-Fi interfész konfigurálása indítható: setup-interfaces"
+  read -p "Futtatod most? (y/n): " ans
+  if [ "$ans" = "y" ]; then
+    setup-interfaces
+  fi
+  exit 0
+else
+  echo "$OK WLAN0 IP rendben: $IP"
+fi
+
+# Gateway és DNS lekérdezése
+GW=$(ip route | grep default | awk '{print $3}')
+DNS=$(grep nameserver /etc/resolv.conf | awk '{print $2}')
+
+# Hálózati cím meghatározása
+PREFIX=$(echo $IP | cut -d'/' -f2)
+ADDR=$(echo $IP | cut -d'/' -f1)
+OCT1=$(echo $ADDR | cut -d'.' -f1)
+OCT2=$(echo $ADDR | cut -d'.' -f2)
+OCT3=$(echo $ADDR | cut -d'.' -f3)
+DEFAULT_NET="$OCT1.$OCT2.$OCT3.0/$PREFIX"
+
+clear
+echo "\n*** Hacking StaTion - Alpine Pi Zero W ***"
+echo "Kapcsolat info:"
+echo " 🌐 Interfész: wlan0"
+echo " 📡 IP: $IP"
+echo " 🚪 Gateway: $GW"
+echo " 🧭 DNS: $DNS"
+echo ""
+echo "Válassz egy opciót:"
+echo "1) Nmap szkennelés"
+echo "2) TCPdump indítása"
+echo "3) Aircrack-ng monitor mód"
+echo "4) ARP-scan futtatása"
+echo "5) Kilépés"
+echo ""
+read -p "Választás: " opt
+
+case $opt in
+  1)
+    echo "Az Nmap (Network Mapper) egy nyílt forráskódú eszköz hálózati IP-címek és portok szkennelésére."
+    echo "Példák:"
+    echo " nmap -sn 192.168.1.0/24         # Élő eszközök keresése"
+    echo " nmap scanme.nmap.org            # Alap port scan"
+    echo " nmap -sS scanme.nmap.org        # Stealth scan"
+    echo " nmap -sV scanme.nmap.org        # Verziók detektálása"
+    echo " nmap -A scanme.nmap.org         # Aggresszív scan"
+    echo " nmap -oN output.txt scanme.nmap.org   # Normál output"
+    echo " nmap -oA output scanme.nmap.org       # Minden formátum"
+    echo ""
+    read -p "Használt opciók (pl. -sn): " opts
+    [ -z "$opts" ] && opts="-sn"
+    read -p "Céltartomány (pl. $DEFAULT_NET): " range
+    [ -z "$range" ] && range="$DEFAULT_NET"
+    echo "$INFO Futtatás: nmap $opts $range"
+    nmap $opts $range
+    ;;
+  2)
+    read -p "Mentés fájlba? (pl. capture.pcap): " file
+    echo "$INFO TCPdump indítása... (nyomj Ctrl+C a leállításhoz)"
+    tcpdump -i wlan0 -w $file
+    ;;
+  3)
+    echo "$INFO Aircrack monitor mód aktiválása..."
+    iw wlan0 interface add mon0 type monitor
+    ifconfig mon0 up
+    echo "$INFO Használható: mon0 - pl. airodump-ng mon0"
+    ;;
+  4)
+    read -p "Szkennelendő tartomány (pl. 192.168.1.0/24): " range
+    arp-scan --interface=wlan0 $range
+    ;;
+  5)
+    echo "$INFO Kilépés..."
+    exit 0
+    ;;
+  *)
+    echo "$ERR Érvénytelen választás."
+    ;;
+esac

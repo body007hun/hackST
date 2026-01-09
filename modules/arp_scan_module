@@ -1,0 +1,47 @@
+#!/bin/sh
+
+INFO="\033[1;34m[INFO]\033[0m"
+ERR="\033[1;31m[HIBA]\033[0m"
+
+clear
+echo "ARP-scan modul"
+echo "-----------------"
+echo "Az arp-scan egy hálózati eszköz, amellyel ARP protokoll segítségével lehet gyorsan felderíteni a hálózaton elérhető eszközöket."
+echo "Nem DNS-t vagy pinget használ, hanem közvetlen ARP kéréseket küld az alhálózaton."
+
+echo "\nHasznos opciók:"
+echo " -I <interface>     Interfész megadása (pl. wlan0)"
+echo " -l                Az alhálózat (CIDR) automatikus használata az IP alapján"
+echo " -g                Beépített gateway keresés"
+echo " -x                Kimenet XML formátumban"
+echo " -v                Részletes kimenet"
+
+# Alapértelmezett interfész és hálózat paraméterek
+INTERFACE="wlan0"
+DEFAULT_RANGE="$1"
+
+echo ""
+read -p "Használni kívánt interfész (alapértelmezett: $INTERFACE): " input_iface
+[ ! -z "$input_iface" ] && INTERFACE="$input_iface"
+
+read -p "Céltartomány (pl. $DEFAULT_RANGE): " input_range
+[ ! -z "$input_range" ] && DEFAULT_RANGE="$input_range"
+
+read -p "További kapcsolók (pl. -v): " extra_opts
+
+read -p "Mentsem a kimenetet fájlba? (y/n): " save_output
+if [ "$save_output" = "y" ]; then
+  mkdir -p /root/outputs
+  TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
+  OUTPUT_FILE="/root/outputs/arp_scan-$TIMESTAMP.txt"
+  echo -e "$INFO Kimenet mentése ide: $OUTPUT_FILE"
+  echo -e "$INFO ARP-scan indítása az alábbi paraméterekkel:" | tee "$OUTPUT_FILE"
+  echo "arp-scan -I $INTERFACE $DEFAULT_RANGE $extra_opts" | tee -a "$OUTPUT_FILE"
+  arp-scan -I "$INTERFACE" $extra_opts "$DEFAULT_RANGE" | tee -a "$OUTPUT_FILE"
+else
+  echo -e "$INFO ARP-scan indítása az alábbi paraméterekkel:"
+  echo "arp-scan -I $INTERFACE $DEFAULT_RANGE $extra_opts"
+  arp-scan -I "$INTERFACE" $extra_opts "$DEFAULT_RANGE"
+fi
+
+exit 0
