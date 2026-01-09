@@ -1,0 +1,4 @@
+SZERVER="192.168.1.22"
+FELHASZNALO="ment"
+SSH_KULCS="$HOME/.ssh/alpine_backup_key"
+CEL_UTVONAL="/mnt/store/alpine"

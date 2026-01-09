@@ -1,6 +1,12 @@
+# outputs and logs
 outputs/
 *.log
-*.tmp
-*.swp
+
+# local configs
+conf/*.conf
+!conf/*.conf.example
+
+# secrets
 .env
-data/secrets*
+*.key
+*.pem

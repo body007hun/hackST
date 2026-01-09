@@ -1,10 +1,19 @@
 #!/bin/sh
+set -eu
 
-SZERVER="192.168.1.22"
-FELHASZNALO="ment"
-SSH_KULCS="~/.ssh/alpine_backup_key"
+CONF_DIR="$(CDPATH= cd -- "$(dirname -- "$0")/../conf" && pwd)"
+CONF_FILE="$CONF_DIR/ment.conf"
+
+if [ -f "$CONF_FILE" ]; then
+  # shellcheck disable=SC1090
+  . "$CONF_FILE"
+else
+  echo "[ERROR] Hiányzó config: $CONF_FILE"
+  echo "Másold ide: $CONF_DIR/ment.conf.example -> ment.conf és töltsd ki."
+  exit 1
+fi
+
 SSH_OPTS="-i $SSH_KULCS -o StrictHostKeyChecking=no"
-CEL_UTVONAL="/mnt/store/alpine"
 DATUM=$(date +%Y-%m-%d_%H-%M)
 MENTES_DIR="backup_$DATUM"
 
