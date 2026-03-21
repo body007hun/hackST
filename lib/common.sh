@@ -37,3 +37,19 @@ ask_input() {
   read -p "$prompt [$default]: " result
   echo "${result:-$default}"
 }
+
+# hiányzó menüpontok
+run_named_module() {
+  name="$1"
+  mod="$2"
+  shift 2
+
+  if [ -x "$mod" ]; then
+    "$mod" "$@"
+  else
+    log_err "A(z) $name modul még nincs telepítve / nincs futtathatóvá téve."
+    echo "Hiányzó fájl: $mod"
+    echo ""
+    read -p "Enter a visszalépéshez..." dummy
+  fi
+}
