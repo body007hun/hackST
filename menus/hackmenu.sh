@@ -26,7 +26,7 @@ GW=$(ip route | awk '/default/ {print $3}' | head -n1)
 DNS=$(grep '^nameserver' /etc/resolv.conf | awk '{print $2}' | paste -sd ', ' -)
 DISKS=$(lsblk | sed 's/^/  /')
 
-OUTPUT_DIR="/root/outputs"
+OUTPUT_DIR="$(get_output_dir)"
 MODULE_PATH="/usr/local/bin/hackstation/modules"
 MENU_PATH="/usr/local/bin/hackstation/menus"
 

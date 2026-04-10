@@ -22,26 +22,41 @@ log_ok() {
   printf "%b %-10s %b %s\n" "$OK" "$tag" "$INFO" "$msg"
 }
 
+# Központi output könyvtár feloldása
+get_output_dir() {
+  if [ -n "$HACKST_OUTPUT_DIR" ]; then
+    echo "$HACKST_OUTPUT_DIR"
+  elif [ "$(id -u)" -eq 0 ] 2>/dev/null; then
+    echo "/root/outputs"
+  else
+    echo "$HOME/outputs"
+  fi
+}
 
 # Automatikus mentéskönyvtár és fájlnév
 gen_output_path() {
-  MODULE_NAME=$1
-  echo "/root/outputs/${MODULE_NAME}-$(date +"%Y%m%d-%H%M%S").log"
+  local module_name="$1"
+  local outdir
+
+  outdir="$(get_output_dir)"
+  mkdir -p "$outdir" 2>/dev/null
+
+  echo "$outdir/${module_name}-$(date +"%Y%m%d-%H%M%S").log"
 }
 
 # Biztonságos kérdéskérés alapértékkel
 ask_input() {
-  local prompt=$1
-  local default=$2
+  local prompt="$1"
+  local default="$2"
   local result
   read -p "$prompt [$default]: " result
   echo "${result:-$default}"
 }
 
-# hiányzó menüpontok
+# Hiányzó menüpontok
 run_named_module() {
-  name="$1"
-  mod="$2"
+  local name="$1"
+  local mod="$2"
   shift 2
 
   if [ -x "$mod" ]; then
